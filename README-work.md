@@ -55,7 +55,7 @@ calendar-year(
     format => 'html', 
     per-row => 4, 
     highlight => (Date.new(2024,1,1)...Date.new(2024,12,31)).grep({ $_.day-of-week ≥ 6 }),
-    highlight-style => 'color:ivory; font-size:14pt'
+    highlight-style => 'color:orange; font-size:14pt'
 )
 ```
 
