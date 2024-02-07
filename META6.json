@@ -1,17 +1,36 @@
 {
-  "name": "Text::Calendar",
-  "description": "Write me!",
-  "version": "0.1",
-  "perl": "6.*",
+  "name": "Markup::Calendar",
+  "description": "Raku package with Markup (HTML, Markdown) calendar functions for displaying monthly, yearly, and custom calendars.",
+  "version": "0.1.0",
+  "perl": "6.d",
   "authors": [
-    "Write me!"
+    "Anton Antonov"
   ],
-  "auth": "Write me!",
-  "depends": [],
+  "auth": "zef:antononcube",
+  "depends": [
+    "Text::Calendar:ver<0.1.3>",
+    "Data::Translators:ver<0.1.4>"
+  ],
   "build-depends": [],
   "test-depends": [],
-  "provides": {},
+  "provides": {
+    "Markup::Calendar": "lib/Markup/Calendar.rakumod"
+  },
   "resources": [],
-  "license": "Write me!",
-  "source-url": "Write me!"
+  "license": "Artistic-2.0",
+  "tags": [
+    "cal",
+    "calendar",
+    "html",
+    "markdown",
+    "month",
+    "monthly",
+    "ncal",
+    "span",
+    "text",
+    "year",
+    "yearly"
+  ],
+  "api": "1",
+  "source-url": "https://github.com/antononcube/Raku-Markup-Calendar"
 }
