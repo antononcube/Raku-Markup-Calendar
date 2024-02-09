@@ -37,7 +37,7 @@ sub process-highlight-specs(UInt $year, $highlight) {
 
         when $_.all ~~ Pair:D {
             ## Should check validity and convert month names to integers
-            $_.flat
+            $_.flat.map({ $_.value ~~ Iterable ?? ($_.key X=> $_.value.Array) !! $_ }).flat.Array
         }
 
         default {
@@ -119,7 +119,9 @@ multi sub calendar-year-html(:$year is copy = Whatever,
     # Place highlights
     for @highPairs -> $p {
         if 1 ≤ $p.key ≤ 12 {
-            %mbs{calendar-month-names()[$p.key - 1]} .= subst('<td>' ~ $p.value ~ '</td>', '<td><span style="' ~ $highlight-style ~ '">' ~ $p.value ~ '</span></td>')
+            %mbs{calendar-month-names()[$p.key - 1]} .=
+                    subst('<td>' ~ $p.value ~ '</td>',
+                            '<td><span style="' ~ $highlight-style ~ '">' ~ $p.value ~ '</span></td>');
         }
     }
 
