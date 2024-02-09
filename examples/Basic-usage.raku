@@ -6,6 +6,11 @@ use lib '.';
 use Text::Calendar;
 use Markup::Calendar;
 
-say calendar-year(method=>'html', per-row=>5,);
+spurt "example.html",
+        calendar-year(format => 'html', per-row => 3, highlight => [2 => (2, 4 ... 28), 5 => 24,]):doc;
 
-spurt "example.html", Markup::Calendar::calendar-year-html(2022, [2, 24,], s => 'color:red'):doc;
+spurt "example2.html",
+        Markup::Calendar::calendar-year-html(2022,
+                [Date.new(2022, 3, 3) => 'font-size:14pt; color:green', Date.new(2022, 5, 24) => Whatever ],
+                s => 'color:red',
+                :doc);
