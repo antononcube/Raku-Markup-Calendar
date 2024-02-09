@@ -6,7 +6,7 @@ use lib '.';
 use Text::Calendar;
 use Markup::Calendar;
 
-spurt "example.html",
+spurt "example1.html",
         calendar-year(format => 'html', per-row => 3, highlight => [2 => (2, 4 ... 28), 5 => 24,]):doc;
 
 spurt "example2.html",
