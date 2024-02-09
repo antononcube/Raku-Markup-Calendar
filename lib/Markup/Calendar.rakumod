@@ -7,37 +7,48 @@ use Data::Translators;
 
 #===========================================================
 
-sub process-highlight-specs(UInt $year, $highlight) {
-    my @highPairs = do given $highlight {
+sub process-styling-specs($spec,
+                          UInt :$year,
+                          Str :$highlight-style = 'color:orange; font-size:12pt') {
+    my @stylePairs = do given $spec {
 
         when Empty {
             Empty
         }
 
         when $_.all ~~ UInt:D {
-            (1 ... 12).Array X=> $_.Array
+            ((1 ... 12).Array X=> $_.Array).flat.map({ Date.new($year, $_.key, $_.value) => $highlight-style})
         }
 
         when UInt:D {
-            (1 ... 12).Array X=> $_.Array
+            ((1 ... 12).Array X=> $_).map({ Date.new($year, $_.key, $_.value) => $highlight-style})
         }
 
         when $_ ~~ Str:D {
             # For each given weekday find its
-            die "Handling of highlight specifications with weekday names or month names is not implemented yet.";
+            die "Handling of highlight specifications with weekday names or month names is not implemented yet."
         }
 
         when Hash:D {
-            process-highlight-specs($year, $_.pairs)
+            process-styling-specs($_.pairs, :$year, :$highlight-style)
         }
 
         when $_.all ~~ Date:D {
-            $_.map({ $_.year == $year ?? ($_.month => $_.day) !! Empty })
+            $_.map({ $_ => $highlight-style })
         }
 
-        when $_.all ~~ Pair:D {
+        when $_.all ~~ Pair:D &&
+                ([&&] $_.map({ $_.key ~~ UInt:D })) &&
+                ([&&] $_.map({ ($_.value ~~ UInt:D) || ($_.value ~~ Iterable) })) {
             ## Should check validity and convert month names to integers
-            $_.flat.map({ $_.value ~~ Iterable ?? ($_.key X=> $_.value.Array) !! $_ }).flat.Array
+            my @specNew = $_.flat.map({ $_.value ~~ Iterable ?? ($_.key X=> $_.value.Array) !! $_ }).flat.Array;
+            @specNew.map({ Date.new($year, $_.key, $_.value) => $highlight-style})
+        }
+
+        when $_.all ~~ Pair:D &&
+                ([&&] $_.map({ $_.key ~~ Date:D })) &&
+                ([&&] $_.map({ $_.value.isa(Whatever) || ($_.value ~~ Str:D) })) {
+            $_.flat.map({ $_.key => ($_.value ~~ Whatever ?? $highlight-style !! $_.value) }).flat.Array
         }
 
         default {
@@ -45,7 +56,7 @@ sub process-highlight-specs(UInt $year, $highlight) {
         }
     }
 
-    return @highPairs;
+    return @stylePairs;
 }
 
 
@@ -88,12 +99,12 @@ multi sub calendar-year-html(:$year is copy = Whatever,
     unless $year ~~ UInt:D;
 
     # Process highlight
-    my @highPairs = process-highlight-specs($year, $highlight);
+    my @highPairs = process-styling-specs($highlight, :$year, :$highlight-style);
 
     die 'The argument $highlights is expected to be a list of month-day pairs, positive integers, or Date objects.'
     unless (@highPairs.all ~~ Pair:D) &&
-            ([&&] @highPairs>>.key.map({ ($_ ~~ UInt:D) && 1 ≤ $_ ≤ 12 })) &&
-            (@highPairs>>.value.all ~~ UInt:D);
+            ([&&] @highPairs>>.key.map({ ($_ ~~ Date:D) })) &&
+            (@highPairs>>.value.all ~~ Str:D);
 
     # Process year
     if $year.isa(Whatever) { $year = Date.today.year; }
@@ -118,11 +129,9 @@ multi sub calendar-year-html(:$year is copy = Whatever,
 
     # Place highlights
     for @highPairs -> $p {
-        if 1 ≤ $p.key ≤ 12 {
-            %mbs{calendar-month-names()[$p.key - 1]} .=
-                    subst('<td>' ~ $p.value ~ '</td>',
-                            '<td><span style="' ~ $highlight-style ~ '">' ~ $p.value ~ '</span></td>');
-        }
+        %mbs{calendar-month-names()[$p.key.month - 1]} .=
+                subst('<td>' ~ $p.key.day ~ '</td>',
+                        '<td><span style="' ~ $p.value ~ '">' ~ $p.key.day ~ '</span></td>');
     }
 
     # Fill in the table of month names
