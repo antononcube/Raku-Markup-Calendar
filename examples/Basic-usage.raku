@@ -7,9 +7,12 @@ use Text::Calendar;
 use Markup::Calendar;
 
 spurt "example1.html",
-        calendar-year(format => 'html', per-row => 3, highlight => [2 => (2, 4 ... 28), 5 => 24,]):doc;
+        Markup::Calendar::calendar-html(per-row => 3, highlight => [2 => (2, 4 ... 28), 5 => 24,]):doc;
 
 spurt "example2.html",
+        calendar-year(format => 'html', per-row => 3, highlight => [2 => (2, 4 ... 28), 5 => 24,]):doc;
+
+spurt "example3.html",
         Markup::Calendar::calendar-year-html(2022,
                 highlight => [Date.new(2022, 3, 3) => 'font-size:14pt; color:green',
                               Date.new(2022, 5, 24) => Whatever],
