@@ -84,8 +84,8 @@ spurt('example.html', calendar-year(year => 2024, highlight => [3=>3, 5=>24, 9=>
   - [ ] TODO Full Markdown calendar
   - [ ] TODO Partial Markdown calendar
   - [X] DONE Highlighted days
-  - [ ] TODO Tooltips for days
-  - [ ] TODO Hyperlinks for days
+  - [X] DONE Tooltips for days
+  - [X] DONE Hyperlinks for days
 - [ ] Unit tests
 - [ ] Documentation
   - [X] DONE Basic README
