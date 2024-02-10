@@ -43,7 +43,7 @@ zef install https://github.com/antononcube/Raku-Markup-Calendar.git
 use Markup::Calendar;
 use Text::Calendar;
 
-calendar(format=>'html')
+calendar():html
 ```
 
 ### HTML yearly calendar with highlights 
@@ -51,12 +51,11 @@ calendar(format=>'html')
 Here is an HTML calendar that weekend days are highlighted and with larger font:
 
 ```raku, results=asis
-calendar-year(
-    format => 'html', 
+calendar-year( 
     per-row => 4, 
     highlight => (Date.new(2024,1,1)...Date.new(2024,12,31)).grep({ $_.day-of-week ≥ 6 }),
     highlight-style => 'color:orange; font-size:14pt'
-)
+):html
 ```
 
 ### Standalone calendar file
@@ -72,14 +71,22 @@ spurt('example.html', calendar-year(year => 2024, highlight => [3=>3, 5=>24, 9=>
 ## TODO
 
 - [ ] TODO Features
-  - [X] DONE Full HTML calendar 
-  - [ ] TODO Partial HTML calendar (e.g. equivalent of `cal -3`) 
-  - [ ] TODO Full Markdown calendar
-  - [ ] TODO Partial Markdown calendar
-  - [X] DONE Highlighted days
-  - [X] DONE Tooltips for days
-  - [X] DONE Hyperlinks for days
+  - [X] DONE HTML
+    - [X] DONE Full HTML calendar 
+    - [X] DONE Partial HTML calendar (e.g. equivalent of `cal -3`)
+    - [X] DONE Highlighted days
+    - [X] DONE Tooltips for days
+    - [X] DONE Hyperlinks for days
+  - [ ] TODO Markdown
+    - [ ] TODO Full Markdown calendar
+    - [ ] TODO Partial Markdown calendar
+    - [ ] TODO Highlighted days
+    - [ ] TODO Tooltips for days
+    - [ ] TODO Hyperlinks for days
 - [ ] Unit tests
+  - [ ] DONE Basic usage
+  - [ ] DONE Equivalence using different signatures
+  - [ ] TODO Correctness
 - [ ] Documentation
   - [X] DONE Basic README
   - [ ] TODO Diagrams
