@@ -1,14 +1,14 @@
 {
   "name": "Markup::Calendar",
   "description": "Raku package with Markup (HTML, Markdown) calendar functions for displaying monthly, yearly, and custom calendars.",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "perl": "6.d",
   "authors": [
     "Anton Antonov"
   ],
   "auth": "zef:antononcube",
   "depends": [
-    "Text::Calendar:ver<0.1.3+>",
+    "Text::Calendar:ver<0.1.5+>",
     "Data::Translators:ver<0.1.4+>"
   ],
   "build-depends": [],
