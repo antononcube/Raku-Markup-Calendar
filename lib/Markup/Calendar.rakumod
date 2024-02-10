@@ -7,9 +7,9 @@ use Data::Translators;
 
 #===========================================================
 
-sub process-styling-specs($spec,
-                          UInt :$year,
-                          Str :$highlight-style = 'color:orange; font-size:12pt') {
+sub process-decoration-specs($spec,
+                             UInt :$year,
+                             Str :$default-style) {
     my @stylePairs = do given $spec {
 
         when Empty {
@@ -17,11 +17,11 @@ sub process-styling-specs($spec,
         }
 
         when $_.all ~~ UInt:D {
-            ((1 ... 12).Array X=> $_.Array).flat.map({ Date.new($year, $_.key, $_.value) => $highlight-style})
+            ((1 ... 12).Array X=> $_.Array).flat.map({ Date.new($year, $_.key, $_.value) => $default-style })
         }
 
         when UInt:D {
-            ((1 ... 12).Array X=> $_).map({ Date.new($year, $_.key, $_.value) => $highlight-style})
+            ((1 ... 12).Array X=> $_).map({ Date.new($year, $_.key, $_.value) => $default-style })
         }
 
         when $_ ~~ Str:D {
@@ -30,11 +30,11 @@ sub process-styling-specs($spec,
         }
 
         when Hash:D {
-            process-styling-specs($_.pairs, :$year, :$highlight-style)
+            process-decoration-specs($_.pairs, :$year, :$default-style)
         }
 
         when $_.all ~~ Date:D {
-            $_.map({ $_ => $highlight-style })
+            $_.map({ $_ => $default-style})
         }
 
         when $_.all ~~ Pair:D &&
@@ -42,23 +42,29 @@ sub process-styling-specs($spec,
                 ([&&] $_.map({ ($_.value ~~ UInt:D) || ($_.value ~~ Iterable) })) {
             ## Should check validity and convert month names to integers
             my @specNew = $_.flat.map({ $_.value ~~ Iterable ?? ($_.key X=> $_.value.Array) !! $_ }).flat.Array;
-            @specNew.map({ Date.new($year, $_.key, $_.value) => $highlight-style})
+            @specNew.map({ Date.new($year, $_.key, $_.value) => $default-style })
         }
 
         when $_.all ~~ Pair:D &&
                 ([&&] $_.map({ $_.key ~~ Date:D })) &&
                 ([&&] $_.map({ $_.value.isa(Whatever) || ($_.value ~~ Str:D) })) {
-            $_.flat.map({ $_.key => ($_.value ~~ Whatever ?? $highlight-style !! $_.value) }).flat.Array
+            $_.flat.map({ $_.key => ($_.value ~~ Whatever ?? $default-style !! $_.value) }).flat.Array
         }
 
         default {
-            die "Do not know how to handle the given highlight specifiction."
+            die "Do not know how to handle the given style specifiction."
         }
     }
 
-    return @stylePairs;
+    return @stylePairs.grep({ so $_.value }).Array;
 }
 
+#===========================================================
+sub style-verification(@specs -->Bool) {
+    return (@specs.all ~~ Pair:D) &&
+            ([&&] @specs>>.key.map({ ($_ ~~ Date:D) })) &&
+            (@specs>>.value.all ~~ Str:D);
+}
 
 #===========================================================
 
@@ -80,14 +86,28 @@ our proto calendar-year-html(|) {*}
 
 multi sub calendar-year-html($year is copy = Whatever,
                              $highlight = [],
+                             :t(:$tooltip) = [],
+                             :l(:$hyperlink) = [],
                              Str:D :s(:$highlight-style) = 'color:orange; font-size:12pt',
                              UInt :$per-row = 3,
                              Bool :doc(:$document) = False) {
-    return calendar-year-html(:$year, :$highlight, :$highlight-style, :$per-row, :$document);
+    return calendar-year-html(:$year, :$highlight, :$tooltip, :$hyperlink, :$highlight-style, :$per-row, :$document);
+}
+
+multi sub calendar-year-html($year is copy = Whatever,
+                             :h(:$highlight) = [],
+                             :t(:$tooltip) = [],
+                             :l(:$hyperlink) = [],
+                             Str:D :s(:$highlight-style) = 'color:orange; font-size:12pt',
+                             UInt :$per-row = 3,
+                             Bool :doc(:$document) = False) {
+    return calendar-year-html(:$year, :$highlight, :$tooltip, :$hyperlink, :$highlight-style, :$per-row, :$document);
 }
 
 multi sub calendar-year-html(:$year is copy = Whatever,
                              :h(:$highlight) = [],
+                             :t(:$tooltip) = [],
+                             :l(:$hyperlink) = [],
                              Str:D :s(:$highlight-style) = 'color:orange; font-size:12pt',
                              UInt :$per-row = 3,
                              Bool :doc(:$document) = False) {
@@ -99,12 +119,22 @@ multi sub calendar-year-html(:$year is copy = Whatever,
     unless $year ~~ UInt:D;
 
     # Process highlight
-    my @highPairs = process-styling-specs($highlight, :$year, :$highlight-style);
+    my @highlightPairs = process-decoration-specs($highlight, :$year, default-style => $highlight-style);
 
-    die 'The argument $highlights is expected to be a list of month-day pairs, positive integers, or Date objects.'
-    unless (@highPairs.all ~~ Pair:D) &&
-            ([&&] @highPairs>>.key.map({ ($_ ~~ Date:D) })) &&
-            (@highPairs>>.value.all ~~ Str:D);
+    die 'The argument $highlight is expected to be a list of Date-string pairs, Date objects, month-day pairs, or positive integers.'
+    unless style-verification(@highlightPairs);
+
+    # Process tooltip
+    my @tooltipPairs = process-decoration-specs($tooltip, :$year, default-style => '');
+
+    die 'The argument $tooltip is expected to be a list of Date-string pairs, Date objects, month-day pairs, or positive integers.'
+    unless style-verification(@tooltipPairs);
+
+    # Process hyperlink
+    my @hyperlinkPairs = process-decoration-specs($hyperlink, :$year, default-style => '');
+
+    die 'The argument $hyperlink is expected to be a list of Date-string pairs, Date objects, month-day pairs, or positive integers.'
+    unless style-verification(@hyperlinkPairs);
 
     # Process year
     if $year.isa(Whatever) { $year = Date.today.year; }
@@ -116,22 +146,28 @@ multi sub calendar-year-html(:$year is copy = Whatever,
     # Month datasets
     my %mbs = calendar-month-names.map({ $_ => calendar-month-dataset($year, $_) });
 
-    # Max number of rows of the datasets
-    my $maxRows = %mbs.map({ $_.value.elems }).max;
-
-    # Empty row to fill in
-    my %emptyRow = calendar-weekday-names() X=> "";
-
     # Make the HTML tables for each month
-    # The following "manual" correction is not needed if style is used
-    #%mbs = %mbs.map({ $_.key => to-html($_.value.elems < $maxRows ?? $_.value.push(%emptyRow) !! $_.value, field-names => calendar-weekday-names) });
     %mbs = %mbs.map({ $_.key => to-html($_.value, field-names => calendar-weekday-names) });
 
+    my %decorations = @highlightPairs.Hash.map({ $_.key => (style => $_.value) }).Hash;
+    %decorations .= push(@tooltipPairs.Hash.map({ $_.key => (tooltip => $_.value) }));
+    %decorations .= push(@hyperlinkPairs.Hash.map({ $_.key => (hyperlink => $_.value) }));
+
     # Place highlights
-    for @highPairs -> $p {
-        %mbs{calendar-month-names()[$p.key.month - 1]} .=
-                subst('<td>' ~ $p.key.day ~ '</td>',
-                        '<td><span style="' ~ $p.value ~ '">' ~ $p.key.day ~ '</span></td>');
+    for %decorations.kv -> $k, $s {
+        my $d = Date.new($k);
+        my %s = $s;
+
+        my $t = %s<tooltip>.defined ?? 'title="' ~ %s<tooltip> ~ '" ' !! '';
+
+        my $v = $d.day;
+        with %s<hyperlink> {
+            $v = '<a href="' ~ %s<hyperlink> ~ '">' ~ $v ~ '</a>';
+        }
+
+        %mbs{calendar-month-names()[$d.month - 1]} .=
+                subst('<td>' ~ $d.day ~ '</td>',
+                        '<td><span ' ~ $t ~ 'style="' ~ %s<style> ~ '">' ~ $v ~ '</span></td>');
     }
 
     # Fill in the table of month names
