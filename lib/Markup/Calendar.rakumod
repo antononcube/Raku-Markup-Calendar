@@ -82,41 +82,48 @@ $BODY
 END
 
 #===========================================================
-our proto calendar-year-html(|) {*}
+our proto calendar-html(|) {*}
 
-multi sub calendar-year-html($year is copy = Whatever,
-                             $highlight = [],
-                             :t(:$tooltip) = [],
-                             :l(:$hyperlink) = [],
-                             Str:D :s(:$highlight-style) = 'color:orange; font-size:12pt',
-                             UInt :$per-row = 3,
-                             Bool :doc(:$document) = False) {
-    return calendar-year-html(:$year, :$highlight, :$tooltip, :$hyperlink, :$highlight-style, :$per-row, :$document);
+multi sub calendar-html($year is copy,
+                        $months is copy,
+                        :h(:$highlight) = [],
+                        :t(:$tooltip) = [],
+                        :l(:$hyperlink) = [],
+                        Str:D :s(:$highlight-style) = 'color:orange; font-size:12pt',
+                        UInt :$per-row = 3,
+                        Bool :doc(:$document) = False) {
+    # Process months specs
+    $months = Text::Calendar::process-month-specs($months, $year);
+
+    return calendar-html($months, :$highlight, :$tooltip, :$hyperlink, :$highlight-style, :$per-row, :$document);
 }
 
-multi sub calendar-year-html($year is copy = Whatever,
-                             :h(:$highlight) = [],
-                             :t(:$tooltip) = [],
-                             :l(:$hyperlink) = [],
-                             Str:D :s(:$highlight-style) = 'color:orange; font-size:12pt',
-                             UInt :$per-row = 3,
-                             Bool :doc(:$document) = False) {
-    return calendar-year-html(:$year, :$highlight, :$tooltip, :$hyperlink, :$highlight-style, :$per-row, :$document);
+multi sub calendar-html($months is copy = Whatever,
+                        :h(:$highlight) = [],
+                        :t(:$tooltip) = [],
+                        :l(:$hyperlink) = [],
+                        Str:D :s(:$highlight-style) = 'color:orange; font-size:12pt',
+                        UInt :$per-row = 3,
+                        Bool :doc(:$document) = False) {
+    # Process months specs
+    $months = Text::Calendar::process-month-specs($months);
+
+    die "The months argument is expected to be Whatever, a list of month names or integers between 1 and 12, or a list of year-month pairs."
+    unless $months>>.value.all ~~ UInt:D && ([&&] $months>>.value.map({ 1 ≤ $_ ≤ 12 }));
+
+    return calendar-html($months, :$highlight, :$tooltip, :$hyperlink, :$highlight-style, :$per-row, :$document);
 }
 
-multi sub calendar-year-html(:$year is copy = Whatever,
-                             :h(:$highlight) = [],
-                             :t(:$tooltip) = [],
-                             :l(:$hyperlink) = [],
-                             Str:D :s(:$highlight-style) = 'color:orange; font-size:12pt',
-                             UInt :$per-row = 3,
-                             Bool :doc(:$document) = False) {
+multi sub calendar-html(@months is copy where @months.all ~~ Pair:D,
+                        :h(:$highlight) = [],
+                        :t(:$tooltip) = [],
+                        :l(:$hyperlink) = [],
+                        Str:D :s(:$highlight-style) = 'color:orange; font-size:12pt',
+                        UInt :$per-row = 3,
+                        Bool :doc(:$document) = False) {
 
-    # Process year
-    if $year.isa(Whatever) { $year = Date.today.year; }
-
-    die 'The argument $year expected to be a non-negative integer.'
-    unless $year ~~ UInt:D;
+    # Extract years
+    my $year = @months>>.key.unique.first;
 
     # Process highlight
     my @highlightPairs = process-decoration-specs($highlight, :$year, default-style => $highlight-style);
@@ -136,15 +143,15 @@ multi sub calendar-year-html(:$year is copy = Whatever,
     die 'The argument $hyperlink is expected to be a list of Date-string pairs, Date objects, month-day pairs, or positive integers.'
     unless style-verification(@hyperlinkPairs);
 
-    # Process year
-    if $year.isa(Whatever) { $year = Date.today.year; }
+    # Year-month key making function
+    my &ym-key = -> Pair:D $p { calendar-month-names()[$p.value-1] ~ ' ' ~ $p.key };
 
     # Make a table of month names
     my @colnames = (1 ... $per-row).map({ $_.Str }).Array;
-    my $tbl = data-translation(calendar-month-names.rotor($per-row, :partial).map({ @colnames Z=> $_ })>>.Hash, field-names => @colnames);
+    my $tbl = data-translation(@months.map({ &ym-key($_) }).rotor($per-row, :partial).map({ @colnames Z=> $_ })>>.Hash, field-names => @colnames);
 
     # Month datasets
-    my %mbs = calendar-month-names.map({ $_ => calendar-month-dataset($year, $_) });
+    my %mbs = @months.map({ &ym-key($_) => calendar-month-dataset($_.key, $_.value) });
 
     # Make the HTML tables for each month
     %mbs = %mbs.map({ $_.key => to-html($_.value, field-names => calendar-weekday-names) });
@@ -165,9 +172,11 @@ multi sub calendar-year-html(:$year is copy = Whatever,
             $v = '<a href="' ~ %s<hyperlink> ~ '">' ~ $v ~ '</a>';
         }
 
-        %mbs{calendar-month-names()[$d.month - 1]} .=
-                subst('<td>' ~ $d.day ~ '</td>',
-                        '<td><span ' ~ $t ~ 'style="' ~ %s<style> ~ '">' ~ $v ~ '</span></td>');
+        if %mbs{&ym-key($d.year => $d.month)}:exists {
+            %mbs{&ym-key($d.year => $d.month)} .=
+                    subst('<td>' ~ $d.day ~ '</td>',
+                            '<td><span ' ~ $t ~ 'style="' ~ %s<style> ~ '">' ~ $v ~ '</span></td>');
+        }
     }
 
     # Fill in the table of month names
@@ -175,7 +184,7 @@ multi sub calendar-year-html(:$year is copy = Whatever,
     for %mbs.kv -> $k, $v {
         $tbl2 .= subst($k, '<h3>' ~ $k ~ '</h3>' ~ $v)
     }
-    $tbl2 .= subst(/ '<thead>' .*? '</thead>'/, '<h2>' ~ $year ~ '</h2>');
+    $tbl2 .= subst(/ '<thead>' .*? '</thead>'/);
     $tbl2 = '<style>td { vertical-align: top;a}</style>' ~ $tbl2;
 
     # Result
@@ -183,6 +192,48 @@ multi sub calendar-year-html(:$year is copy = Whatever,
         return $htmlDocStencil.subst('$BODY', $tbl2);
     }
     return $tbl2;
+}
+
+#===========================================================
+
+multi sub calendar(**@args, *%args where (%args<format> // 'None') eq 'html') {
+    return calendar-html(|@args, |%args.grep({ $_.key ne 'format' }).Hash);
+}
+
+#===========================================================
+our proto calendar-year-html(|) {*}
+
+multi sub calendar-year-html($year is copy = Whatever,
+                             :h(:$highlight) = [],
+                             :t(:$tooltip) = [],
+                             :l(:$hyperlink) = [],
+                             Str:D :s(:$highlight-style) = 'color:orange; font-size:12pt',
+                             UInt :$per-row = 3,
+                             Bool :doc(:$document) = False) {
+    if $year.isa(Whatever) { $year = Date.today.year; }
+    return calendar-year-html(:$year, :$highlight, :$tooltip, :$hyperlink, :$highlight-style, :$per-row, :$document);
+}
+
+multi sub calendar-year-html(:$year is copy = Whatever,
+                             :h(:$highlight) = [],
+                             :t(:$tooltip) = [],
+                             :l(:$hyperlink) = [],
+                             Str:D :s(:$highlight-style) = 'color:orange; font-size:12pt',
+                             UInt :$per-row = 3,
+                             Bool :doc(:$document) = False) {
+
+    if $year.isa(Whatever) { $year = Date.today.year; }
+
+    # Delegate
+    my $tbl = calendar-html($year, 1 .. 12, :$highlight, :$tooltip, :$hyperlink, :$highlight-style, :$per-row, :!document);
+    $tbl .= subst($year):g;
+    $tbl = '<h2>' ~ $year ~ '</h2>' ~ $tbl;
+
+    # Result
+    if $document {
+        return $htmlDocStencil.subst('$BODY', $tbl);
+    }
+    return $tbl;
 }
 
 #===========================================================
