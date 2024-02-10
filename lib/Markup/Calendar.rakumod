@@ -196,8 +196,10 @@ multi sub calendar-html(@months is copy where @months.all ~~ Pair:D,
 
 #===========================================================
 
-multi sub calendar(**@args, *%args where (%args<format> // 'None') eq 'html') {
-    return calendar-html(|@args, |%args.grep({ $_.key ne 'format' }).Hash);
+multi sub calendar(**@args,
+                   *%args where (%args<format> // 'None') eq 'html' || (%args<html> // False)
+                   ) {
+    return calendar-html(|@args, |%args.grep({ $_.key ∉ <format html> }).Hash);
 }
 
 #===========================================================
@@ -238,6 +240,8 @@ multi sub calendar-year-html(:$year is copy = Whatever,
 
 #===========================================================
 
-multi sub calendar-year(**@args, *%args where (%args<format> // 'None') eq 'html') {
-    return calendar-year-html(|@args, |%args.grep({ $_.key ne 'format' }).Hash);
+multi sub calendar-year(**@args,
+                        *%args where (%args<format> // 'None') eq 'html' || (%args<html> // False)
+                        ) {
+    return calendar-year-html(|@args, |%args.grep({ $_.key ∉ <format html> }).Hash);
 }
