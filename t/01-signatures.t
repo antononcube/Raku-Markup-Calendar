@@ -1,6 +1,7 @@
 use v6.d;
 
 use Markup::Calendar;
+use Text::Calendar;
 use Test;
 
 plan *;
@@ -27,5 +28,19 @@ ok Markup::Calendar::calendar-year-html(2022,
                       Date.new(2022, 5, 24) => 'https://en.wikipedia.org/wiki/Day_of_Slavonic_Alphabet,_Bulgarian_Enlightenment_and_Culture'],
         s => 'color:red',
         :doc);
+
+## 4
+is
+        calendar(1..4):html,
+        calendar(1..4, format => 'html'),
+        "Equivalence for different signatures, adverb :html, 1";
+
+
+## 4
+is
+        calendar-year():html,
+        calendar-year(format => 'html'),
+        "Equivalence for different signatures, adverb :html, 2";
+
 
 done-testing;
