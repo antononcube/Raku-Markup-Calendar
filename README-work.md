@@ -43,12 +43,12 @@ zef install https://github.com/antononcube/Raku-Markup-Calendar.git
 use Markup::Calendar;
 use Text::Calendar;
 
-calendar-year(format=>'html')
+calendar(format=>'html')
 ```
 
-### HTML calendar with highlights 
+### HTML yearly calendar with highlights 
 
-Here is an HTML calendar that weekend days are highlighted and with larger font
+Here is an HTML calendar that weekend days are highlighted and with larger font:
 
 ```raku, results=asis
 calendar-year(
