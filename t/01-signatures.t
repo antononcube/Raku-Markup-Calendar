@@ -7,23 +7,17 @@ plan *;
 
 ## 1
 is
-        Markup::Calendar::calendar-year-html(2024, [1, 11, 22]),
-        Markup::Calendar::calendar-year-html(year => 2024, highlight => [1, 11, 22]),
+        Markup::Calendar::calendar-html(2024, (1..4).Array),
+        Markup::Calendar::calendar-html([2024 => 1, 2024 => 2, 2024 => 3, 2024 => 4]),
         "Equivalence for different signatures 1";
 
 ## 2
 is
-        Markup::Calendar::calendar-year-html(2024, [1, 11, 22]),
-        Markup::Calendar::calendar-year-html(year => 2024, highlight => [1, 11, 22]),
+        Markup::Calendar::calendar-html((1..4).Array),
+        Markup::Calendar::calendar-html([2024 => 1, 2024 => 2, 2024 => 3, 2024 => 4]),
         "Equivalence for different signatures 2";
 
 ## 3
-is
-        Markup::Calendar::calendar-year-html(2024, [1, 11, 22]),
-        Markup::Calendar::calendar-year-html(year => 2024, highlight => [1, 11, 22]),
-        "Equivalence for different signatures 3";
-
-## 4
 ok Markup::Calendar::calendar-year-html(2022,
         highlight => [Date.new(2022, 3, 3) => 'font-size:14pt; color:green',
                       Date.new(2022, 5, 24) => Whatever],
