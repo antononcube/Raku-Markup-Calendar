@@ -24,7 +24,7 @@ sub MAIN(
 
     if $yearLocal && $monthsLocal.isa(Whatever) {
         $monthsLocal = 1 .. 12
-    } else {
+    } elsif !$monthsLocal.isa(Whatever) {
         $monthsLocal = $monthsLocal.map({ my $i = try $_.Int; $! ?? $_ !! $i }).Array
     }
 
