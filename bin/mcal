@@ -1,0 +1,52 @@
+#!/usr/bin/env raku
+use v6.d;
+use Markup::Calendar;
+
+my %*SUB-MAIN-OPTS = :named-anywhere;
+
+sub MAIN(
+        Str:D :y(:$year) = '',
+        Str:D :m(:$months) = 'Whatever',
+        Str:D :h(:$highlight) = '',
+        Str:D :t(:$tooltip) = '',
+        Str:D :l(:$hyperlink) = '',
+        Str:D :s(:$highlight-style) = 'color:orange; font-size:12pt',
+        UInt:D :$per-row = 3,
+        Bool:D :doc(:$document) = False) {
+
+    # Process year
+    my $yearLocal = $year.lc ∈ <whatever auto automatic> ?? Whatever !! $year.Int;
+
+    # Process months
+    my $monthsLocal = $months.lc ∈ <whatever auto automatic> ?? Whatever !! $months.split(/<[,;]>/, :skip-empty).Array;
+
+    if $yearLocal && $monthsLocal.isa(Whatever) {
+        $monthsLocal = 1 .. 12
+    } else {
+        $monthsLocal = $monthsLocal.map({ my $i = try $_.Int; $! ?? $_ !! $i }).Array
+    }
+
+    # Process highlight
+    my @highlightLocal;
+    if $highlight { @highlightLocal = |$highlight.split(/<[,;]>/, :skip-empty) }
+
+    my @tooltipLocal;
+    if $tooltip { @tooltipLocal = |$tooltip.split(/<[,;]>/, :skip-empty) }
+
+    my @hyperlinkLocal;
+    if $hyperlink { @hyperlinkLocal = |$hyperlink.split(/<[,;]>/, :skip-empty) }
+
+    my %args =
+            highlight => @highlightLocal,
+            tooltip => @tooltipLocal,
+            hyperlink => @hyperlinkLocal,
+            :$highlight-style,
+            :$per-row,
+            :$document;
+
+    if $year {
+        say Markup::Calendar::calendar-html($yearLocal, $monthsLocal, |%args)
+    } else {
+        say Markup::Calendar::calendar-html($monthsLocal, |%args)
+    }
+}
