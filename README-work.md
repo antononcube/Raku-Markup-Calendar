@@ -95,8 +95,8 @@ mcal --help
     - [ ] TODO Hyperlinks for days
   - [X] CLI
 - [ ] Unit tests
-  - [ ] DONE Basic usage
-  - [ ] DONE Equivalence using different signatures
+  - [X] DONE Basic usage
+  - [X] DONE Equivalence using different signatures
   - [ ] TODO Correctness
 - [ ] Documentation
   - [X] DONE Basic README
