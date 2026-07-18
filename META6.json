@@ -1,36 +1,33 @@
 {
-  "name": "Markup::Calendar",
-  "description": "Raku package with Markup (HTML, Markdown) calendar functions for displaying monthly, yearly, and custom calendars.",
-  "version": "0.2.1",
-  "perl": "6.d",
-  "authors": [
-    "Anton Antonov"
-  ],
-  "auth": "zef:antononcube",
-  "depends": [
-    "Text::Calendar:ver<0.1.5+>",
-    "Data::Translators:ver<0.1.4+>"
-  ],
-  "build-depends": [],
-  "test-depends": [],
-  "provides": {
-    "Markup::Calendar": "lib/Markup/Calendar.rakumod"
-  },
-  "resources": [],
-  "license": "Artistic-2.0",
-  "tags": [
-    "cal",
-    "calendar",
-    "html",
-    "markdown",
-    "month",
-    "monthly",
-    "ncal",
-    "span",
-    "text",
-    "year",
-    "yearly"
-  ],
-  "api": "1",
-  "source-url": "https://github.com/antononcube/Raku-Markup-Calendar"
+    "name": "Markup::Calendar",
+    "description": "Raku package with Markup (HTML, Markdown) calendar functions for displaying monthly, yearly, and custom calendars.",
+    "version": "0.2.2",
+    "authors": [
+        "Anton Antonov"
+    ],
+    "auth": "zef:antononcube",
+    "depends": [
+        "Text::Calendar:ver<0.1.5+>",
+        "Data::Translators:ver<0.1.4+>"
+    ],
+    "build-depends": [],
+    "provides": {
+        "Markup::Calendar": "lib/Markup/Calendar.rakumod"
+    },
+    "license": "Artistic-2.0",
+    "tags": [
+        "cal",
+        "calendar",
+        "html",
+        "markdown",
+        "month",
+        "monthly",
+        "ncal",
+        "span",
+        "text",
+        "year",
+        "yearly"
+    ],
+    "api": "1",
+    "source-url": "https://github.com/antononcube/Raku-Markup-Calendar"
 }
