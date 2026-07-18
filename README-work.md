@@ -68,6 +68,16 @@ spurt('example.html', calendar-year(year => 2024, highlight => [3=>3, 5=>24, 9=>
 
 ------
 
+## CLI
+
+The package provides the Command Line Interface (CLI) script `mcal`. Here is its usage message:
+
+```shell
+mcal --help
+```
+
+------
+
 ## TODO
 
 - [ ] TODO Features
@@ -83,6 +93,7 @@ spurt('example.html', calendar-year(year => 2024, highlight => [3=>3, 5=>24, 9=>
     - [ ] TODO Highlighted days
     - [ ] TODO Tooltips for days
     - [ ] TODO Hyperlinks for days
+  - [X] CLI
 - [ ] Unit tests
   - [ ] DONE Basic usage
   - [ ] DONE Equivalence using different signatures
