@@ -4,15 +4,17 @@ use Markup::Calendar;
 
 my %*SUB-MAIN-OPTS = :named-anywhere;
 
+#| Displays a calendar in HTML format.
 sub MAIN(
-        Str:D :y(:$year) = '',
-        Str:D :m(:$months) = 'Whatever',
-        Str:D :h(:$highlight) = '',
-        Str:D :t(:$tooltip) = '',
-        Str:D :l(:$hyperlink) = '',
-        Str:D :s(:$highlight-style) = 'color:orange; font-size:12pt',
-        UInt:D :$per-row = 3,
-        Bool:D :doc(:$document) = False) {
+        Str:D :y(:$year) = '',            #= Year spec; if an empty string only the months spec is used.
+        Str:D :m(:$months) = 'Whatever',  #= Months spec, comma separated list of integers or month names.
+        Str:D :h(:$highlight) = '',       #= Highlight spec that is a comma separated list of days.
+        Str:D :t(:$tooltip) = '',         #= Tooltip spec.
+        Str:D :l(:$hyperlink) = '',       #= Hyperlink spec (per calendar day.)
+        Str:D :s(:$highlight-style) = 'color:orange; font-size:12pt', #= Highlight style (HTML style.)
+        UInt:D :$per-row = 3,             #= Number of months per row.
+        Bool:D :doc(:$document) = False   #= Should a complete HTML document be made or not?
+         ) {
 
     # Process year
     my $yearLocal = $year.lc ∈ <whatever auto automatic> ?? Whatever !! $year.Int;
